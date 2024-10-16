@@ -40,17 +40,29 @@ jobs:
           echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key.pem
           chmod 600 private_key.pem
 
-      # Step 6: Get EC2 Public IP
+      # # Step 6: Get EC2 Public IP
+      # - name: Get EC2 Public IP
+      #   id: get-ec2-ip
+      #   working-directory: terraform/
+      #   run: |
+      #     echo "::set-output name=public_ip::$(terraform output -raw ec2_public_ip)"
+
+      # # Debugging Step: Print the EC2 Public IP
+      # - name: Debug EC2 IP
+      #   run: |
+      #     echo "EC2 IP: ${{ steps.get-ec2-ip.outputs.public_ip }}"
+
+      # Step 6: Get EC2 Public IP and Set it as an Env Variable
       - name: Get EC2 Public IP
         id: get-ec2-ip
-        working-directory: terraform/
         run: |
-          echo "::set-output name=public_ip::$(terraform output -raw ec2_public_ip)"
+          EC2_PUBLIC_IP=$(terraform output -raw ec2_public_ip)
+          echo "EC2_PUBLIC_IP=${EC2_PUBLIC_IP}" >> $GITHUB_ENV
 
-      # Debugging Step: Print the EC2 Public IP
+      # Debug EC2 IP
       - name: Debug EC2 IP
         run: |
-          echo "EC2 IP: ${{ steps.get-ec2-ip.outputs.public_ip }}"
+          echo "EC2 IP: ${{ env.EC2_PUBLIC_IP }}"
 
       # Step 7: Deploy Application
       - name: Deploy Application
