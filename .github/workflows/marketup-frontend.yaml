@@ -52,22 +52,26 @@ jobs:
       #   run: |
       #     echo "EC2 IP: ${{ steps.get-ec2-ip.outputs.public_ip }}"
 
-      - name: Debug Terraform Output
-        working-directory: terraform/
-        run: terraform output -raw ec2_public_ip
-
+      # Step 5: Get and Sanitize EC2 Public IP
       - name: Save EC2 Public IP to Environment Variable
         working-directory: terraform/
         run: |
-          PUBLIC_IP=$(terraform output -raw ec2_public_ip | tr -d '\r')
-          echo "EC2_PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
+          RAW_OUTPUT=$(terraform output -raw ec2_public_ip)
+          CLEANED_IP=$(echo "$RAW_OUTPUT" | sed -e 's/[^0-9.]//g')
+          echo "EC2_PUBLIC_IP=$CLEANED_IP" >> $GITHUB_ENV
 
+      # Step 6: Verify EC2 Public IP
+      - name: Verify EC2 Public IP
+        run: |
+          echo "The EC2 Public IP is: $EC2_PUBLIC_IP"
+
+      # Step 7: Save Private Key
       - name: Save Private Key
         run: |
           echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key.pem
           chmod 600 private_key.pem
 
-      # Step 7: Deploy Application
+      # Step 8: Deploy Application
       - name: Deploy Application
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ steps.get-ec2-ip.outputs.public_ip }} << 'EOF'
