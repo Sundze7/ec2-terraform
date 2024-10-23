@@ -65,9 +65,10 @@ jobs:
             echo "Failed to extract a valid public IP address." >&2
             exit 1
           fi
-          # Ensure proper format when writing to $GITHUB_ENV
-          echo -n "EC2_PUBLIC_IP=${CLEANED_IP}" >> $GITHUB_ENV
-
+          # Write IP using multiline syntax
+          echo 'EC2_PUBLIC_IP<<EOF' >> $GITHUB_ENV
+          echo "$CLEANED_IP" >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
 
 
       # Step 6: Verify EC2 Public IP
