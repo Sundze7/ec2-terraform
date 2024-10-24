@@ -85,29 +85,22 @@ jobs:
       # Step 8: Deploy Application
       - name: Deploy Application
         run: |
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ steps.get-ec2-ip.outputs.public_ip }} << 'EOF'
-          # Update and install dependencies
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$EC2_PUBLIC_IP << 'EOF'
+          set -e # Exit on error
           sudo apt update
           sudo apt install -y nodejs npm git
-
-          # Clone application repository
           mkdir -p /var/www/nextjs-app
           cd /var/www/nextjs-app
           echo "${{ secrets.APP_DEPLOY_KEY }}" > /tmp/deploy-key
           chmod 600 /tmp/deploy-key
           GIT_SSH_COMMAND="ssh -i /tmp/deploy-key -o StrictHostKeyChecking=no" git clone git@github.com:stellatech-ca/marketup.git .
-
-          # Navigate to the app and build
           cd app
           npm install
           npm run build
-
-          # Install PM2 and start the application
           npm install pm2 -g
           pm2 start npm -- start
           EOF
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          EC2_PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
+          EC2_PUBLIC_IP: ${{ env.EC2_PUBLIC_IP }}
+
           APP_DEPLOY_KEY: ${{ secrets.APP_DEPLOY_KEY }}
