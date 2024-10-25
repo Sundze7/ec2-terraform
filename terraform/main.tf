@@ -20,9 +20,11 @@ resource "aws_instance" "web" {
 #   }
 }
 
-output "ec2_public_ip" {
-  value = aws_instance.web.public_ip
+output "ec2_public_dns" {
+  value = aws_instance.web.public_dns
 }
+
+
 
 # resource "aws_instance" "github-runner" {
 #   ami = "ami-0ea3c35c5c3284d82"
