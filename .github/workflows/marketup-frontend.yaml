@@ -59,23 +59,23 @@ jobs:
       #     echo "The EC2 Public IP is: $EC2_PUBLIC_IP"
 
 
-      
 
-      # Step 5: Get and Save EC2 Public DNS to Environment Variable
+
+     # Step 5: Get and Save EC2 Public DNS to Environment Variable
       - name: Save EC2 Public DNS to Environment Variable
         working-directory: terraform/
         run: |
           set -e # Exit on error
           RAW_OUTPUT=$(terraform output -raw ec2_public_dns)
           echo "Raw Terraform Output: $RAW_OUTPUT" # Debug raw output
-          # Strip unwanted characters and get only the valid DNS
-          CLEANED_DNS=$(echo "$RAW_OUTPUT" | sed 's/[^a-zA-Z0-9.-]//g' | grep -oP '[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
+          # Extract only the DNS part, clean any additional debug or output
+          CLEANED_DNS=$(echo "$RAW_OUTPUT" | sed -n 's/"\(.*\)"/\1/p')
           echo "Extracted Clean DNS: $CLEANED_DNS" # Debug cleaned DNS
           if [[ -z "$CLEANED_DNS" ]]; then
             echo "Failed to extract a valid public DNS." >&2
             exit 1
           fi
-          # Write DNS using multiline syntax
+          # Write DNS using multiline syntax to $GITHUB_ENV
           echo 'EC2_PUBLIC_DNS<<EOF' >> $GITHUB_ENV
           echo "$CLEANED_DNS" >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
