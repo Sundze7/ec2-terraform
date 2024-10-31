@@ -68,8 +68,8 @@ jobs:
           set -e # Exit on error
           RAW_OUTPUT=$(terraform output -raw ec2_public_dns)
           echo "Raw Terraform Output: $RAW_OUTPUT" # Debug raw output
-          # Extract only the DNS part, clean any additional debug or output
-          CLEANED_DNS=$(echo "$RAW_OUTPUT" | sed -n 's/"\(.*\)"/\1/p')
+          # Extract the DNS using grep and awk
+          CLEANED_DNS=$(echo "$RAW_OUTPUT" | grep -Eo 'ec2-[0-9\-]+\.us-east-2\.compute\.amazonaws\.com')
           echo "Extracted Clean DNS: $CLEANED_DNS" # Debug cleaned DNS
           if [[ -z "$CLEANED_DNS" ]]; then
             echo "Failed to extract a valid public DNS." >&2
