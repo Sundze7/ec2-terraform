@@ -88,13 +88,13 @@ jobs:
       # Step 7: Save Private Key
       - name: Save Private Key
         run: |
-          echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key.pem
-          chmod 600 private_key.pem
+          echo "${{ secrets.EC2_PRIVATE_KEY }}" > stellahtech.pem
+          chmod 600 stellahtech.pem
 
       # Step 8: Deploy Application
       - name: Deploy Application
         run: |
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$EC2_PUBLIC_DNS << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i stellahtech.pem ubuntu@$EC2_PUBLIC_DNS << 'EOF'
           set -e # Exit on error
           sudo apt update
           sudo apt install -y nodejs npm git
