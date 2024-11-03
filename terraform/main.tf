@@ -7,7 +7,9 @@ resource "aws_instance" "web" {
   user_data = <<-EOT
     #!/bin/bash
     sudo apt update
-    sudo apt install -y nginx
+    sudo apt install -y nginx openssh-server
+    sudo systemctl enable ssh
+    sudo systemctl start ssh
     sudo systemctl start nginx
   EOT 
 
