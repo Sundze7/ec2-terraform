@@ -3,7 +3,7 @@ name: Provision EC2 and Deploy Next.js App
 on:
   push:
     branches:
-      - master
+      - sundze
 
 jobs:
   terraform-apply:
@@ -21,12 +21,12 @@ jobs:
         with:
           terraform_version: 1.6.0
 
-      # Step 3: Initialize Terraform
+      # Initialize Terraform
       - name: Terraform Init
         working-directory: terraform/
         run: terraform init
 
-      # Step 4: Apply Terraform
+      # Apply Terraform
       - name: Terraform Apply
         working-directory: terraform/
         run: terraform apply -auto-approve
@@ -34,83 +34,5 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      # # Step 5: Get and Sanitize EC2 Public IP
-      # - name: Save EC2 Public IP to Environment Variable
-      #   working-directory: terraform/
-      #   run: |
-      #     set -e # Exit on error
-      #     RAW_OUTPUT=$(terraform output -raw ec2_public_ip)
-      #     echo "Raw Terraform Output: $RAW_OUTPUT" # Debug raw output
-      #     CLEANED_IP=$(echo "$RAW_OUTPUT" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}')
-      #     echo "Extracted Clean IP: $CLEANED_IP" # Debug cleaned IP
-      #     if [[ -z "$CLEANED_IP" ]]; then
-      #       echo "Failed to extract a valid public IP address." >&2
-      #       exit 1
-      #     fi
-      #     # Write IP using multiline syntax
-      #     echo 'EC2_PUBLIC_IP<<EOF' >> $GITHUB_ENV
-      #     echo "$CLEANED_IP" >> $GITHUB_ENV
-      #     echo 'EOF' >> $GITHUB_ENV
-
-
-      # # Step 6: Verify EC2 Public IP
-      # - name: Verify EC2 Public IP
-      #   run: |
-      #     echo "The EC2 Public IP is: $EC2_PUBLIC_IP"
-
-
-
-
-     # Step 5: Get and Save EC2 Public DNS to Environment Variable
-      - name: Save EC2 Public DNS to Environment Variable
-        working-directory: terraform/
-        run: |
-          set -e # Exit on error
-          RAW_OUTPUT=$(terraform output -raw ec2_public_dns)
-          echo "Raw Terraform Output: $RAW_OUTPUT" # Debug raw output
-          # Extract the DNS using grep and awk
-          CLEANED_DNS=$(echo "$RAW_OUTPUT" | grep -Eo 'ec2-[0-9\-]+\.us-east-2\.compute\.amazonaws\.com')
-          echo "Extracted Clean DNS: $CLEANED_DNS" # Debug cleaned DNS
-          if [[ -z "$CLEANED_DNS" ]]; then
-            echo "Failed to extract a valid public DNS." >&2
-            exit 1
-          fi
-          # Write DNS using multiline syntax to $GITHUB_ENV
-          echo 'EC2_PUBLIC_DNS<<EOF' >> $GITHUB_ENV
-          echo "$CLEANED_DNS" >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
-
-      # Step 6: Verify EC2 Public DNS
-      - name: Verify EC2 Public DNS
-        run: |
-          echo "The EC2 Public DNS is: $EC2_PUBLIC_DNS"
-
-      # Step 7: Save Private Key
-      - name: Save Private Key
-        run: |
-          echo "${{ secrets.EC2_PRIVATE_KEY }}" > stellahtech.pem
-          chmod 600 stellahtech.pem
-
-      # Step 8: Deploy Application
-      - name: Deploy Application
-        run: |
-          ssh -vvv -o StrictHostKeyChecking=no -i stellahtech.pem ubuntu@$EC2_PUBLIC_DNS true << 'EOF'
-          set -e # Exit on error
-          sudo apt update
-          sudo apt install -y nodejs npm git
-          mkdir -p /var/www/nextjs-app
-          cd /var/www/nextjs-app
-          echo "${{ secrets.APP_DEPLOY_KEY }}" > /tmp/deploy-key
-          chmod 600 /tmp/deploy-key
-          GIT_SSH_COMMAND="ssh -i /tmp/deploy-key -o StrictHostKeyChecking=no" git clone git@github.com:stellatech-ca/marketup.git .
-          cd app
-          npm install
-          npm run build
-          npm install pm2 -g
-          pm2 start npm -- start
-          EOF
-        env:
-          # EC2_PUBLIC_IP: ${{ env.EC2_PUBLIC_IP }}
-          EC2_PUBLIC_DNS: ${{ env.EC2_PUBLIC_DNS }}
-
-          APP_DEPLOY_KEY: ${{ secrets.APP_DEPLOY_KEY }}
+     
+  
