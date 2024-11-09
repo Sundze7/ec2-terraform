@@ -3,6 +3,10 @@
 # setup Github Runner
 
 # Create a folder
+sudo apt-get update
+
+GH_RUNNER_TOKEN="{{GH_RUNNER_TOKEN}}"
+
 mkdir actions-runner && cd actions-runner
 # Download the latest runner package
 curl -o actions-runner-linux-x64-2.321.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.321.0/actions-runner-linux-x64-2.321.0.tar.gz
@@ -13,13 +17,12 @@ tar xzf ./actions-runner-linux-x64-2.321.0.tar.gz
 
 
 # Create the runner and start the configuration experience
- ./config.sh --url https://github.com/Sundze7/ec2-terraform --token AZSWKXVITUWTZ3EKWD6QAADHMVILA
+ ./config.sh --url https://github.com/Sundze7/ec2-terraform --token $GH_RUNNER_TOKEN
 # Last step, run it!
 #  ./run.sh
 
 
 #install docker
-sudo apt-get update
 sudo apt-get install docker.io -y
 sudo usermod -aG docker ubuntu  
 newgrp docker

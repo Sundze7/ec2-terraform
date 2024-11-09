@@ -3,16 +3,7 @@ resource "aws_instance" "web" {
   instance_type          = "t2.medium"
   key_name               = "stellahtech"
   vpc_security_group_ids = [aws_security_group.new-sg.id]
-  # user_data              = templatefile("./install.sh", {})
-  user_data = <<-EOT
-    #!/bin/bash
-    sudo apt update
-    sudo apt install -y nginx openssh-server
-    sudo systemctl enable ssh
-    sudo systemctl start ssh
-    sudo systemctl start nginx
-  EOT 
-
+  user_data              = templatefile("./install.sh", {})
   tags = {
     Name = "docker-sonar"
   }
@@ -21,11 +12,6 @@ resource "aws_instance" "web" {
 #     volume_size = 30
 #   }
 }
-
-output "ec2_public_dns" {
-  value = aws_instance.web.public_dns
-}
-
 
 
 # resource "aws_instance" "github-runner" {
@@ -61,6 +47,16 @@ resource "aws_security_group" "new-sg" {
       self             = false
     }
   ]
+  
+    # Port range
+  ingress {
+    description      = "Inbound rule for port range 3000-50000"
+    from_port        = 3000
+    to_port          = 50000
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = []
+  }
 
   egress {
     from_port   = 0
@@ -68,7 +64,6 @@ resource "aws_security_group" "new-sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
   tags = {
     Name = "new-sg"
   }
