@@ -1,12 +1,10 @@
 name: Provision EC2 and Deploy Next.js App
 
 on:
-  repository_dispatch:
-    types: 
-      - deploy
+  workflow_dispatch:
 
 jobs:
-  terraform-apply:
+  trigger_workflow:
     name: Provision EC2 and Deploy Application
     runs-on: ubuntu-latest
 
