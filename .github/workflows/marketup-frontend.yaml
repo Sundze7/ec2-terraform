@@ -1,7 +1,12 @@
 name: Provision EC2 and Deploy Next.js App
 
+# on:
+#   workflow_dispatch:
+
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - master
 
 jobs:
   trigger_workflow:
