@@ -1,9 +1,9 @@
 name: Provision EC2 and Deploy Next.js App
 
 on:
-  push:
-    branches:
-      - sundze
+  repository_dispatch:
+    types: 
+      - deploy
 
 jobs:
   terraform-apply:
@@ -33,13 +33,21 @@ jobs:
         working-directory: terraform/
         run: terraform init
 
-      # Apply Terraform
-      - name: Terraform Apply
-        working-directory: terraform/
-        run: terraform apply -auto-approve
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      # # Apply Terraform
+      # - name: Terraform Apply
+      #   working-directory: terraform/
+      #   run: terraform apply -auto-approve
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+
+      - name: Checkout Front-End Repo
+        uses: actions/checkout@
+        with:
+          repository: stellatech-ca/marketup 
+          token: ${{secrets.GH_PAT}}
+          
 
      
   
