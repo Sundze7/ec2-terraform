@@ -46,10 +46,11 @@ jobs:
 
 
       - name: Checkout Front-End Repo
-        uses: actions/checkout@
+        uses: actions/checkout@v3
         with:
           repository: stellatech-ca/marketup 
           token: ${{secrets.GH_PAT}}
+          ref: feat/biz-overview
           
 
      
