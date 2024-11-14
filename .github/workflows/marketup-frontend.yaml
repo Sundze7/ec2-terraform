@@ -18,10 +18,10 @@ jobs:
       - name: Checkout Terraform Repository
         uses: actions/checkout@v3
 
-      - name: Inject GitHub Runner Token into User Data
-        id: inject-token
-        run: |
-          sed -i "s/{{GH_RUNNER_TOKEN}}/${{ secrets.GH_RUNNER_TOKEN }}/g" install.sh
+      # - name: Inject GitHub Runner Token into User Data
+      #   id: inject-token
+      #   run: |
+      #     sed -i "s/{{GH_RUNNER_TOKEN}}/${{ secrets.GH_RUNNER_TOKEN }}/g" install.sh
 
 
 
