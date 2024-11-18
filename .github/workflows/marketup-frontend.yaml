@@ -50,13 +50,16 @@ jobs:
           repository: stellatech-ca/marketup 
           token: ${{secrets.GH_PAT}}
           ref: feat/biz-overview
-          
+
       # TESTING
       - name: Install Node.js Dependencies
         uses: actions/setup-node@v3
         with:
           node-version: 18
       - run: npm install
+
+      - name: Install Jest
+        run: npm install --save-dev jest
 
       - name: Run Tests
         run: npm test
