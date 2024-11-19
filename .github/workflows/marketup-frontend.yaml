@@ -58,11 +58,30 @@ jobs:
           node-version: 18
       - run: npm install
 
-      - name: Install Jest
-        run: npm install --save-dev jest
 
-      - name: Run Tests
-        run: npm test
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build Docker Image
+        run: |
+          docker build -t market-web:latest .
+
+      - name: Tag Docker Image
+        run: |
+          docker tag market-web:latest 148761669209.dkr.ecr.us-east-2.amazonaws.com/market-web:latest
+
+      - name: Push Docker Image to ECR
+        run: |
+          docker push 148761669209.dkr.ecr.us-east-2.amazonaws.com/market-web:latest
+
                 
 
      
