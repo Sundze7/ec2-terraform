@@ -61,12 +61,11 @@ jobs:
       # Install Trivy for scanning
       - name: Install Trivy
         run: |
-          sudo apt-get install wget gnupg
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
           sudo apt-get update
-          sudo apt-get install trivy
-          sudo trivy server
+          sudo apt-get install -y wget
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.29.0/trivy_0.29.0_Linux-x86_64.deb
+          sudo dpkg -i trivy_0.29.0_Linux-x86_64.deb
+          
 
       - name: Trivy FS scan
         run: |
