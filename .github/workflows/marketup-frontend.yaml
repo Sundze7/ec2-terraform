@@ -58,13 +58,14 @@ jobs:
           node-version: 18
       - run: npm install
 
-       # Install Trivy for scanning
+        # Install Trivy for scanning
       - name: Install Trivy
         run: |
           sudo apt-get update
           sudo apt-get install -y wget
-          wget https://github.com/aquasecurity/trivy/releases/download/v0.31.0/trivy_0.31.0_Linux-x86_64.deb
-          sudo dpkg -i trivy_0.31.0_Linux-x86_64.deb
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.31.0/trivy_0.31.0_Linux-x86_64.deb || true
+          sudo apt-get install -y gnupg2 lsb-release
+          curl -sfL https://github.com/aquasecurity/trivy/releases/download/v0.31.0/trivy_0.31.0_Linux-x86_64.tar.gz | tar xz -C /usr/local/bin
 
       # Run Trivy filesystem scan
       - name: Trivy FS scan
