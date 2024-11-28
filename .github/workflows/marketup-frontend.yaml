@@ -58,7 +58,7 @@ jobs:
           node-version: 18
       - run: npm install
 
-             # Install Trivy for scanning
+      # Install Trivy for scanning
       - name: Install Trivy
         run: |
           # Update apt-get and install necessary tools
@@ -67,7 +67,15 @@ jobs:
 
           # Download and install Trivy binary
           curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.31.0/trivy_0.31.0_Linux-x86_64.tar.gz -o trivy.tar.gz
-          tar -xzf trivy.tar.gz -C /usr/local/bin --strip-components=1
+          
+          # Check if the file is downloaded successfully before extracting
+          if file trivy.tar.gz | grep -q 'gzip compressed data'; then
+            echo "Download successful, extracting..."
+            tar -xzf trivy.tar.gz -C /usr/local/bin --strip-components=1
+          else
+            echo "Error: Download failed or file is not a valid .tar.gz archive"
+            exit 1
+          fi
 
 
       # Run Trivy filesystem scan
