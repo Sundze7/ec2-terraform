@@ -58,30 +58,20 @@ jobs:
           node-version: 18
       - run: npm install
 
-      # Install Trivy for scanning
-      - name: Install Trivy
-        run: |
-          # Update apt-get and install necessary tools
-          sudo apt-get update
-          sudo apt-get install -y wget curl gnupg2 lsb-release
+      - name: Run Trivy vulnerability scanner in filesystem mode
+        uses: aquasecurity/trivy-action@v0.8.0
+        with:
+          scan-type: 'fs' # Filesystem scan
+          hide-progress: false
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          exit-code: '0' # Don't fail the pipeline automatically
+          ignore-unfixed: true
 
-          # Download and install Trivy binary
-          curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.31.0/trivy_0.31.0_Linux-x86_64.tar.gz -o trivy.tar.gz
-          
-          # Check if the file is downloaded successfully before extracting
-          if file trivy.tar.gz | grep -q 'gzip compressed data'; then
-            echo "Download successful, extracting..."
-            tar -xzf trivy.tar.gz -C /usr/local/bin --strip-components=1
-          else
-            echo "Error: Download failed or file is not a valid .tar.gz archive"
-            exit 1
-          fi
-
-
-      # Run Trivy filesystem scan
-      - name: Trivy FS scan
-        run: |
-          trivy fs --format table -o fs.html .
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
 
       # - name: Configure AWS Credentials
       #   uses: aws-actions/configure-aws-credentials@v2
