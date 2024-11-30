@@ -59,7 +59,7 @@ jobs:
       - run: npm install
 
       - name: Run Trivy vulnerability scanner in filesystem mode
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs' # Filesystem scan
           scan-ref: '.'
