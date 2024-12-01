@@ -8,10 +8,6 @@ on:
     branches:
       - master
 
-permissions:
-  security-events: write
-  contents: read
-
 jobs:
   trigger_workflow:
     name: Provision EC2 and Deploy Application
@@ -63,7 +59,7 @@ jobs:
       - run: npm install
 
       - name: Run Trivy vulnerability scanner in filesystem mode
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.25.0
         with:
           scan-type: 'fs' # Filesystem scan
           scan-ref: '.'
