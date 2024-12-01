@@ -8,6 +8,10 @@ on:
     branches:
       - master
 
+permissions:
+  security-events: write
+  contents: read
+
 jobs:
   trigger_workflow:
     name: Provision EC2 and Deploy Application
