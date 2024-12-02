@@ -59,7 +59,7 @@ jobs:
       - run: npm install
 
       - name: Run Trivy vulnerability scanner in filesystem mode
-        uses: aquasecurity/trivy-action@0.25.0
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs' # Filesystem scan
           scan-ref: '.'
@@ -70,10 +70,26 @@ jobs:
           exit-code: '0' # Don't fail the pipeline automatically
           ignore-unfixed: true
 
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Generate Trivy Vulnerability Report
+        uses: aquasecurity/trivy-action@master
         with:
-          sarif_file: 'trivy-results.sarif'
+          scan-type: "fs"
+          output: trivy-report.json
+          format: json
+          scan-ref: .
+          exit-code: 0
+
+      - name: Upload Vulnerability Scan Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: trivy-report.json
+          retention-days: 30
+
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   with:
+      #     sarif_file: 'trivy-results.sarif'
 
       # - name: Configure AWS Credentials
       #   uses: aws-actions/configure-aws-credentials@v2
