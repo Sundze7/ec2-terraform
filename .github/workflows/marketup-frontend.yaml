@@ -23,8 +23,6 @@ jobs:
       # #   run: |
       # #     sed -i "s/{{GH_RUNNER_TOKEN}}/${{ secrets.GH_RUNNER_TOKEN }}/g" install.sh
 
-
-
       # # Step 2: Setup Terraform
       # - name: Setup Terraform
       #   uses: hashicorp/setup-terraform@v2
@@ -57,7 +55,8 @@ jobs:
         with:
           node-version: 18
       - run: npm install
-
+      
+      # REPO SCAN WITH TRIVY
       - name: Run Trivy vulnerability scanner in filesystem mode
         uses: aquasecurity/trivy-action@0.28.0
         with:
@@ -86,33 +85,48 @@ jobs:
           path: trivy-report.json
           retention-days: 30
 
-      # - name: Upload Trivy scan results to GitHub Security tab
-      #   uses: github/codeql-action/upload-sarif@v3
-      #   with:
-      #     sarif_file: 'trivy-results.sarif'
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
 
-      # - name: Configure AWS Credentials
-      #   uses: aws-actions/configure-aws-credentials@v2
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: us-east-2
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      # BUILD & TAG DOCKER IMAGE
 
-      # - name: Log in to Amazon ECR
-      #   id: login-ecr
-      #   uses: aws-actions/amazon-ecr-login@v2
+      - name: Build Docker Image # v1 - image tag
+        run: |
+          docker build -t market-web:v1 .
 
-      # - name: Build Docker Image # v1 - image tag
-      #   run: |
-      #     docker build -t market-web:v1 .
+      - name: Tag Docker Image
+        run: |
+          docker tag market-web:v1 ${{ secrets.ECR_REGISTRY_URL }}/market-web:v1
 
-      # - name: Tag Docker Image
-      #   run: |
-      #     docker tag market-web:v1 ${{ secrets.ECR_REGISTRY_URL }}/market-web:v1
+      - name: Push Docker Image to ECR
+        run: |
+          docker push ${{ secrets.ECR_REGISTRY_URL }}/market-web:v1
+      
+      
+      # DOCKER IMAGE SCAN WITH TRIVY
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: '${{ secrets.ECR_REGISTRY_URL }}:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-2
 
-      # - name: Push Docker Image to ECR
-      #   run: |
-      #     docker push ${{ secrets.ECR_REGISTRY_URL }}/market-web:v1
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
 
                 
 
