@@ -56,66 +56,66 @@ jobs:
           node-version: 18
       - run: npm install
       
-      # REPO SCAN WITH TRIVY
-      - name: Run Trivy vulnerability scanner in filesystem mode
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: 'fs' # Filesystem scan
-          scan-ref: '.'
-          trivy-config: trivy.yaml
-          hide-progress: false
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          exit-code: '0' # Don't fail the pipeline automatically
-          ignore-unfixed: true
+      # # REPO SCAN WITH TRIVY
+      # - name: Run Trivy vulnerability scanner in filesystem mode
+      #   uses: aquasecurity/trivy-action@0.28.0
+      #   with:
+      #     scan-type: 'fs' # Filesystem scan
+      #     scan-ref: '.'
+      #     trivy-config: trivy.yaml
+      #     hide-progress: false
+      #     format: 'sarif'
+      #     output: 'trivy-results.sarif'
+      #     exit-code: '0' # Don't fail the pipeline automatically
+      #     ignore-unfixed: true
 
-      - name: Generate Trivy Vulnerability Report
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: "fs"
-          output: trivy-report.json
-          format: json
-          scan-ref: .
-          exit-code: 0
+      # - name: Generate Trivy Vulnerability Report
+      #   uses: aquasecurity/trivy-action@master
+      #   with:
+      #     scan-type: "fs"
+      #     output: trivy-report.json
+      #     format: json
+      #     scan-ref: .
+      #     exit-code: 0
 
-      - name: Upload Vulnerability Scan Results
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-report
-          path: trivy-report.json
-          retention-days: 30
+      # - name: Upload Vulnerability Scan Results
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: trivy-report
+      #     path: trivy-report.json
+      #     retention-days: 30
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
+      # - name: Configure AWS Credentials
+      #   uses: aws-actions/configure-aws-credentials@v2
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: us-east-2
 
-      - name: Log in to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+      # - name: Log in to Amazon ECR
+      #   id: login-ecr
+      #   uses: aws-actions/amazon-ecr-login@v2
       
-      # BUILD & TAG DOCKER IMAGE
+      # # BUILD & TAG DOCKER IMAGE
 
-      - name: Build Docker Image # v1 - image tag
-        run: |
-          docker build -t market-web:v1 .
+      # - name: Build Docker Image # v1 - image tag
+      #   run: |
+      #     docker build -t market-web:v1 .
 
-      - name: Tag Docker Image
-        run: |
-          docker tag market-web:v1 ${{ secrets.ECR_REGISTRY_URL }}/market-web:v1
+      # - name: Tag Docker Image
+      #   run: |
+      #     docker tag market-web:v1 ${{ secrets.ECR_REGISTRY_URL }}/market-web:v1
 
-      - name: Push Docker Image to ECR
-        run: |
-          docker push ${{ secrets.ECR_REGISTRY_URL }}/market-web:v1
+      # - name: Push Docker Image to ECR
+      #   run: |
+      #     docker push ${{ secrets.ECR_REGISTRY_URL }}/market-web:v1
       
-      
+
       # DOCKER IMAGE SCAN WITH TRIVY
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: '${{ secrets.ECR_REGISTRY_URL }}:${{ github.sha }}'
+          image-ref: '148761669209.dkr.ecr.us-east-2.amazonaws.com/market-web:${{ github.sha }}'
           format: 'sarif'
           output: 'trivy-results.sarif'
         env:
