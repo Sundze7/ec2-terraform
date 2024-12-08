@@ -116,21 +116,21 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: '148761669209.dkr.ecr.us-east-2.amazonaws.com/market-web:v1'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+          format: 'json'
+          output: 'trivy-results.json'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-2
 
-      - name: Generate Trivy Vulnerability Report
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: "image"
-          output: trivy-report.json
-          format: json
-          image-ref: '148761669209.dkr.ecr.us-east-2.amazonaws.com/market-web:v1'
-          exit-code: 0
+      # - name: Generate Trivy Vulnerability Report
+      #   uses: aquasecurity/trivy-action@master
+      #   with:
+      #     scan-type: "image"
+      #     output: trivy-report.json
+      #     format: json
+      #     image-ref: '148761669209.dkr.ecr.us-east-2.amazonaws.com/market-web:v1'
+      #     exit-code: 0
 
       - name: Upload Vulnerability Scan Results
         uses: actions/upload-artifact@v4
