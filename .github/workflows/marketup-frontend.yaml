@@ -3,7 +3,7 @@ name: Provision EC2 and Deploy Next.js App
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   terraform-apply:
