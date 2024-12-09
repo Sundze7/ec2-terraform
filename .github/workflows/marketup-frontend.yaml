@@ -117,7 +117,7 @@ jobs:
         with:
           image-ref: '148761669209.dkr.ecr.us-east-2.amazonaws.com/market-web:v1'
           format: 'json'
-          output: 'trivy-results.json'
+          output: 'trivy-image-scan-results.json'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -135,8 +135,8 @@ jobs:
       - name: Upload Vulnerability Scan Results
         uses: actions/upload-artifact@v4
         with:
-          name: trivy-report
-          path: trivy-report.json
+          name: trivy-image-scan-results
+          path: trivy-image-scan-results.json
           retention-days: 30
 
                 
