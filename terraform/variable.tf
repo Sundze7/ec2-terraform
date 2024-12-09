@@ -1,14 +1,14 @@
-variable "github_token" {
-  description = "GitHub personal access token with GH Actions self-hosted access"
-  type        = string
-  sensitive   = true
-}
+# variable "github_token" {
+#   description = "GitHub personal access token with GH Actions self-hosted access"
+#   type        = string
+#   sensitive   = true
+# }
 
-variable "github_repo" {
-  description = "GitHub repo to connect the runners to. Only used if user-data.sh is set to repo mode"
-  type        = string
-  default     = "username/repo"
-}
+# variable "github_repo" {
+#   description = "GitHub repo to connect the runners to. Only used if user-data.sh is set to repo mode"
+#   type        = string
+#   default     = "username/repo"
+# }
 
 
 # variable "aws_access_key" {
