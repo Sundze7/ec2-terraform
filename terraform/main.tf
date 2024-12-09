@@ -1,9 +1,15 @@
 resource "aws_instance" "web" {
-  ami                    = "ami-0ea3c35c5c3284d82"   #change ami id for different region
+  ami                    = "ami-0ea3c35c5c3284d82"  
   instance_type          = "t2.medium"
   key_name               = "stellahtech"
   vpc_security_group_ids = [aws_security_group.new-sg.id]
-  user_data              = templatefile("./install.sh", {})
+  # user_data              = templatefile("./install.sh", {})
+  user_data = <<-EOT
+    #!/bin/bash
+    sudo apt update
+    sudo apt install -y nginx
+    sudo systemctl start nginx
+  EOT 
 
   tags = {
     Name = "docker-sonar"
@@ -13,6 +19,26 @@ resource "aws_instance" "web" {
 #     volume_size = 30
 #   }
 }
+
+output "ec2_public_ip" {
+  value = aws_instance.web.public_ip
+}
+
+# resource "aws_instance" "github-runner" {
+#   ami = "ami-0ea3c35c5c3284d82"
+#   instance_type = "t2.medium"
+#   key_name = "stellatech"
+#   vpc_security_group_ids = [aws_security_group.new-sg.id]
+#   user_data = templatefile("./github-runner.sh", {
+#     github_token = var.github_token
+#     github_repo = var.github_repo
+
+#   })
+
+#   tags = {
+#     Name = "github-runner"
+#   }
+# }
 
 resource "aws_security_group" "new-sg" {
   name        = "new-sg"
