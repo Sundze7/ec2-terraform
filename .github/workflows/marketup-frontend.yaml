@@ -24,7 +24,10 @@ jobs:
       # Step 3: Initialize Terraform
       - name: Terraform Init
         working-directory: terraform/
-        run: terraform init
+        run: |
+          terraform destroy -auto-approve
+          terraform refresh
+          terraform init
 
       # Step 4: Apply Terraform
       - name: Terraform Apply
