@@ -11,12 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # - name: Clean Terraform Workspace
-      #   run: |
-      #     rm -rf .terraform
-      #     rm -f terraform.tfstate*
-
-
       # Step 1: Checkout Terraform Repository
       - name: Checkout Terraform Repository
         uses: actions/checkout@v3
@@ -35,7 +29,7 @@ jobs:
       # Step 4: Apply Terraform
       - name: Terraform Apply
         working-directory: terraform/
-        run: terraform apply -auto-approve 
+        run: terraform apply -auto-approve
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -44,22 +38,39 @@ jobs:
       - name: Get EC2 Public IP
         id: get-ec2-ip
         working-directory: terraform/
-        run: echo "::set-output name=public_ip::$(terraform output -raw ec2_public_ip)"
+        run: |
+          PUBLIC_IP=$(terraform output -raw ec2_public_ip)
+          echo "PUBLIC_IP=${PUBLIC_IP}" >> $GITHUB_ENV
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       # Step 6: Deploy Application
       - name: Deploy Application
         run: |
-          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_PRIVATE_KEY }} ubuntu@${{ steps.get-ec2-ip.outputs.public_ip }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.PUBLIC_IP }} << 'EOF'
+          # Update and install dependencies
           sudo apt update
           sudo apt install -y nodejs npm git
+
+          # Clone application repository
           mkdir -p /var/www/nextjs-app
           cd /var/www/nextjs-app
           echo "${{ secrets.APP_DEPLOY_KEY }}" > /tmp/deploy-key
           chmod 600 /tmp/deploy-key
           GIT_SSH_COMMAND="ssh -i /tmp/deploy-key -o StrictHostKeyChecking=no" git clone git@github.com:stellatech-ca/marketup.git .
+
+          # Navigate to the app and build
           cd app
           npm install
           npm run build
+
+          # Install PM2 and start the application
           npm install pm2 -g
           pm2 start npm -- start
           EOF
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          EC2_PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
+          APP_DEPLOY_KEY: ${{ secrets.APP_DEPLOY_KEY }}
