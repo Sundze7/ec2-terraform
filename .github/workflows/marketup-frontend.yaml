@@ -35,7 +35,7 @@ jobs:
       # Step 4: Apply Terraform
       - name: Terraform Apply
         working-directory: terraform/
-        run: terraform apply -auto-approve -var 'github_token=dummy'
+        run: terraform apply -auto-approve 
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
