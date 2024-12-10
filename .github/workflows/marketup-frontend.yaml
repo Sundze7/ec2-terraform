@@ -34,7 +34,13 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      # Step 5: Get EC2 Public IP
+       # Step 5: Save Private Key
+      - name: Save Private Key
+        run: |
+          echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      # Step 6: Get EC2 Public IP
       - name: Get EC2 Public IP
         id: get-ec2-ip
         working-directory: terraform/
@@ -44,10 +50,10 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      # Step 6: Deploy Application
+      # Step 7: Deploy Application
       - name: Deploy Application
         run: |
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.PUBLIC_IP }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ steps.get-ec2-ip.outputs.public_ip }} << 'EOF'
           # Update and install dependencies
           sudo apt update
           sudo apt install -y nodejs npm git
