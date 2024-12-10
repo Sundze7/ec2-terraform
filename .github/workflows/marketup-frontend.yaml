@@ -30,9 +30,7 @@ jobs:
       # Step 3: Initialize Terraform
       - name: Terraform Init
         working-directory: terraform/
-        run: |
-          terraform refresh
-          terraform init
+        run: terraform init
 
       # Step 4: Apply Terraform
       - name: Terraform Apply
