@@ -11,57 +11,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clean Terraform Workspace
+      # - name: Clean Terraform Workspace
+      #   run: |
+      #     rm -rf .terraform
+      #     rm -f terraform.tfstate*
+
+
+      # Step 1: Checkout Terraform Repository
+      - name: Checkout Terraform Repository
+        uses: actions/checkout@v3
+
+      # Step 2: Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.0
+
+      # Step 3: Initialize Terraform
+      - name: Terraform Init
+        working-directory: terraform/
         run: |
-          rm -rf .terraform
-          rm -f terraform.tfstate*
+          terraform refresh
+          terraform init
 
+      # Step 4: Apply Terraform
+      - name: Terraform Apply
+        working-directory: terraform/
+        run: terraform apply -auto-approve -var 'github_token=dummy'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      # # Step 1: Checkout Terraform Repository
-      # - name: Checkout Terraform Repository
-      #   uses: actions/checkout@v3
+      # Step 5: Get EC2 Public IP
+      - name: Get EC2 Public IP
+        id: get-ec2-ip
+        working-directory: terraform/
+        run: echo "::set-output name=public_ip::$(terraform output -raw ec2_public_ip)"
 
-      # # Step 2: Setup Terraform
-      # - name: Setup Terraform
-      #   uses: hashicorp/setup-terraform@v2
-      #   with:
-      #     terraform_version: 1.6.0
-
-      # # Step 3: Initialize Terraform
-      # - name: Terraform Init
-      #   working-directory: terraform/
-      #   run: |
-      #     terraform refresh
-      #     terraform init
-
-      # # Step 4: Apply Terraform
-      # - name: Terraform Apply
-      #   working-directory: terraform/
-      #   run: terraform apply -auto-approve -var 'github_token=dummy'
-      #   env:
-      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      # # Step 5: Get EC2 Public IP
-      # - name: Get EC2 Public IP
-      #   id: get-ec2-ip
-      #   working-directory: terraform/
-      #   run: echo "::set-output name=public_ip::$(terraform output -raw ec2_public_ip)"
-
-      # # Step 6: Deploy Application
-      # - name: Deploy Application
-      #   run: |
-      #     ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_PRIVATE_KEY }} ubuntu@${{ steps.get-ec2-ip.outputs.public_ip }} << 'EOF'
-      #     sudo apt update
-      #     sudo apt install -y nodejs npm git
-      #     mkdir -p /var/www/nextjs-app
-      #     cd /var/www/nextjs-app
-      #     echo "${{ secrets.APP_DEPLOY_KEY }}" > /tmp/deploy-key
-      #     chmod 600 /tmp/deploy-key
-      #     GIT_SSH_COMMAND="ssh -i /tmp/deploy-key -o StrictHostKeyChecking=no" git clone git@github.com:stellatech-ca/marketup.git .
-      #     cd app
-      #     npm install
-      #     npm run build
-      #     npm install pm2 -g
-      #     pm2 start npm -- start
-      #     EOF
+      # Step 6: Deploy Application
+      - name: Deploy Application
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_PRIVATE_KEY }} ubuntu@${{ steps.get-ec2-ip.outputs.public_ip }} << 'EOF'
+          sudo apt update
+          sudo apt install -y nodejs npm git
+          mkdir -p /var/www/nextjs-app
+          cd /var/www/nextjs-app
+          echo "${{ secrets.APP_DEPLOY_KEY }}" > /tmp/deploy-key
+          chmod 600 /tmp/deploy-key
+          GIT_SSH_COMMAND="ssh -i /tmp/deploy-key -o StrictHostKeyChecking=no" git clone git@github.com:stellatech-ca/marketup.git .
+          cd app
+          npm install
+          npm run build
+          npm install pm2 -g
+          pm2 start npm -- start
+          EOF
