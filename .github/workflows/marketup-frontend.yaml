@@ -111,26 +111,26 @@ jobs:
       #     docker push ${{ secrets.ECR_REGISTRY_URL }}/market-web:v1
       
 
-      # DOCKER IMAGE SCAN WITH TRIVY
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: '148761669209.dkr.ecr.us-east-2.amazonaws.com/market-web:v1'
-          format: 'json'
-          output: 'trivy-image-scan-results.json'
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-2
+      # # DOCKER IMAGE SCAN WITH TRIVY
+      # - name: Run Trivy vulnerability scanner
+      #   uses: aquasecurity/trivy-action@0.28.0
+      #   with:
+      #     image-ref: '148761669209.dkr.ecr.us-east-2.amazonaws.com/market-web:v1'
+      #     format: 'json'
+      #     output: 'trivy-image-scan-results.json'
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     AWS_DEFAULT_REGION: us-east-2
       
 
-      # UPLOAD SCANNED RESULT
-      - name: Upload Vulnerability Scan Results
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-image-scan-results
-          path: trivy-image-scan-results.json
-          retention-days: 30
+      # # UPLOAD SCANNED RESULT
+      # - name: Upload Vulnerability Scan Results
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: trivy-image-scan-results
+      #     path: trivy-image-scan-results.json
+      #     retention-days: 30
 
                 
 
