@@ -84,12 +84,12 @@ jobs:
           done
 
       # Step 6: Run SonarScanner
-      - name: Run SonarScanner
+      - name: Debug SonarScanner
         env:
           SONAR_HOST_URL: http://localhost:9000
-          SONAR_TOKEN: admin # default SonarQube admin token; replace if needed
+          SONAR_TOKEN: admin
         run: |
-          npx sonar-scanner \
+          npx sonar-scanner -X \
             -Dsonar.projectKey=your_project_key \
             -Dsonar.sources=. \
             -Dsonar.exclusions=**/node_modules/**,**/*.test.ts,**/*.test.tsx,**/*.spec.ts,**/*.spec.tsx \
@@ -97,6 +97,7 @@ jobs:
             -Dsonar.typescript.tsconfigPath=tsconfig.json \
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.host.url=$SONAR_HOST_URL
+
 
       # Step 7: Retrieve and Save SonarQube Report
       - name: Fetch SonarQube Analysis Report
