@@ -11,7 +11,18 @@ on:
 jobs:
   trigger_workflow:
     name: Provision EC2 and Deploy Application
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest 
+
+    services:
+      sonarqube:
+        image: sonarqube:community
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd="curl -f http://localhost:9000/api/system/health || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     steps:
       # Step 1: Checkout Terraform Repository
@@ -61,15 +72,15 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      # Step 4: Start SonarQube
-      - name: Start SonarQube
-        run: |
-          docker run -d --name sonarqube \
-          -p 9000:9000 \
-          -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true \
-          sonarqube:lts
-        env:
-          DOCKER_BUILDKIT: 1
+      # # Step 4: Start SonarQube
+      # - name: Start SonarQube
+      #   run: |
+      #     docker run -d --name sonarqube \
+      #     -p 9000:9000 \
+      #     -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true \
+      #     sonarqube:lts
+      #   env:
+      #     DOCKER_BUILDKIT: 1
 
       # Step 5: Wait for SonarQube to be ready
       - name: Wait for SonarQube to be ready
@@ -83,14 +94,23 @@ jobs:
             sleep 10;
           done
 
-      # Step 6: Run SonarScanner
-      - name: Debug SonarScanner
+      # Step 4: Generate Authentication Token for SonarQube
+      - name: Generate SonarQube Token
+        id: generate_token
+        run: |
+          TOKEN=$(curl -X POST -u admin:admin \
+            -d "name=GitHubActionsToken" \
+            "http://localhost:9000/api/user_tokens/generate" | jq -r '.token')
+          echo "SONAR_TOKEN=$TOKEN" >> $GITHUB_ENV
+
+      # Step 5: Run SonarScanner
+      - name: Run SonarScanner
         env:
           SONAR_HOST_URL: http://localhost:9000
-          SONAR_TOKEN: admin
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
         run: |
           npx sonar-scanner -X \
-            -Dsonar.projectKey=your_project_key \
+            -Dsonar.projectKey=marketup_project \
             -Dsonar.sources=. \
             -Dsonar.exclusions=**/node_modules/**,**/*.test.ts,**/*.test.tsx,**/*.spec.ts,**/*.spec.tsx \
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
@@ -98,24 +118,17 @@ jobs:
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.host.url=$SONAR_HOST_URL
 
-
-      # Step 7: Retrieve and Save SonarQube Report
+      # Step 6: Retrieve and Save SonarQube Report
       - name: Fetch SonarQube Analysis Report
         env:
           SONAR_HOST_URL: http://localhost:9000
-          SONAR_TOKEN: admin # default SonarQube admin token; replace if needed
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
         run: |
-          PROJECT_KEY="your_project_key"
-          ANALYSIS_ID=$(curl -s -u admin:admin "$SONAR_HOST_URL/api/project_analyses/search?project=$PROJECT_KEY" | jq -r '.analyses[0].key')
-          if [ -z "$ANALYSIS_ID" ]; then
-            echo "No analysis found for the project."
-            exit 1
-          fi
-          REPORT=$(curl -s -u admin:admin "$SONAR_HOST_URL/api/issues/search?componentKeys=$PROJECT_KEY")
+          PROJECT_KEY="marketup_project"
+          REPORT=$(curl -s -u admin:${{ env.SONAR_TOKEN }} "$SONAR_HOST_URL/api/issues/search?componentKeys=$PROJECT_KEY")
           echo "$REPORT" > sonarqube-report.json
-        shell: bash
 
-      # Step 8: Upload Analysis Report as an Artifact
+      # Step 7: Upload SonarQube Report as an Artifact
       - name: Upload SonarQube Report
         uses: actions/upload-artifact@v4
         with:
@@ -123,7 +136,7 @@ jobs:
           path: sonarqube-report.json
           retention-days: 30
 
-      # Step 9: Stop SonarQube
+      # Step 8: Stop SonarQube Service
       - name: Stop SonarQube
         run: |
           docker stop sonarqube
