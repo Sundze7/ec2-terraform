@@ -23,6 +23,10 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=20
+        env:
+          SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+          SONAR_WEB_JAVAOPTS: "-Xms512m -Xmx512m"
+          SONAR_CE_JAVAOPTS: "-Xms256m -Xmx256m"
 
     steps:
       # Step 1: Checkout Terraform Repository
@@ -85,13 +89,13 @@ jobs:
       # Step 5: Wait for SonarQube to be ready
       - name: Wait for SonarQube to be ready
         run: |
-          for i in {1..30}; do
+          for i in {1..60}; do
             if curl -s http://localhost:9000/api/system/health | grep -q '"health":"GREEN"'; then
               echo "SonarQube is ready";
               break;
             fi;
             echo "Waiting for SonarQube...";
-            sleep 10;
+            sleep 15;
           done
 
       # Step 4: Generate Authentication Token for SonarQube
