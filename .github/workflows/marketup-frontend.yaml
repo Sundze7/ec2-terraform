@@ -13,20 +13,20 @@ jobs:
     name: Provision EC2 and Deploy Application
     runs-on: ubuntu-latest 
 
-    services:
-      sonarqube:
-        image: sonarqube:lts
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd="curl -f http://localhost:9000/api/system/health || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=20
-        env:
-          SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
-          SONAR_WEB_JAVAOPTS: "-Xms512m -Xmx512m"
-          SONAR_CE_JAVAOPTS: "-Xms256m -Xmx256m"
+    # services:
+    #   sonarqube:
+    #     image: sonarqube:lts
+    #     ports:
+    #       - 9000:9000
+    #     options: >-
+    #       --health-cmd="curl -f http://localhost:9000/api/system/health || exit 1"
+    #       --health-interval=10s
+    #       --health-timeout=5s
+    #       --health-retries=20
+    #     env:
+    #       SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    #       SONAR_WEB_JAVAOPTS: "-Xms512m -Xmx512m"
+    #       SONAR_CE_JAVAOPTS: "-Xms256m -Xmx256m"
 
     steps:
       # Step 1: Checkout Terraform Repository
@@ -87,141 +87,141 @@ jobs:
       #     DOCKER_BUILDKIT: 1
 
       # Step 5: Wait for SonarQube to be ready
-      - name: Wait for SonarQube to be ready
-        run: |
-          for i in {1..60}; do
-            if curl -s http://localhost:9000/api/system/health | grep -q '"health":"GREEN"'; then
-              echo "SonarQube is ready";
-              break;
-            fi;
-            echo "Waiting for SonarQube...";
-            sleep 15;
-          done
+      # - name: Wait for SonarQube to be ready
+      #   run: |
+      #     for i in {1..60}; do
+      #       if curl -s http://localhost:9000/api/system/health | grep -q '"health":"GREEN"'; then
+      #         echo "SonarQube is ready";
+      #         break;
+      #       fi;
+      #       echo "Waiting for SonarQube...";
+      #       sleep 15;
+      #     done
 
-      # Step 4: Generate Authentication Token for SonarQube
-      - name: Generate SonarQube Token
-        id: generate_token
-        run: |
-          TOKEN=$(curl -X POST -u admin:admin \
-            -d "name=GitHubActionsToken" \
-            "http://localhost:9000/api/user_tokens/generate" | jq -r '.token')
-          echo "SONAR_TOKEN=$TOKEN" >> $GITHUB_ENV
+      # # Step 4: Generate Authentication Token for SonarQube
+      # - name: Generate SonarQube Token
+      #   id: generate_token
+      #   run: |
+      #     TOKEN=$(curl -X POST -u admin:admin \
+      #       -d "name=GitHubActionsToken" \
+      #       "http://localhost:9000/api/user_tokens/generate" | jq -r '.token')
+      #     echo "SONAR_TOKEN=$TOKEN" >> $GITHUB_ENV
 
-      # Step 5: Run SonarScanner
-      - name: Run SonarScanner
-        env:
-          SONAR_HOST_URL: http://localhost:9000
-          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
-        run: |
-          npx sonar-scanner -X \
-            -Dsonar.projectKey=marketup_project \
-            -Dsonar.sources=. \
-            -Dsonar.exclusions=**/node_modules/**,**/*.test.ts,**/*.test.tsx,**/*.spec.ts,**/*.spec.tsx \
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
-            -Dsonar.typescript.tsconfigPath=tsconfig.json \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.host.url=$SONAR_HOST_URL
+      # # Step 5: Run SonarScanner
+      # - name: Run SonarScanner
+      #   env:
+      #     SONAR_HOST_URL: http://localhost:9000
+      #     SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+      #   run: |
+      #     npx sonar-scanner -X \
+      #       -Dsonar.projectKey=marketup_project \
+      #       -Dsonar.sources=. \
+      #       -Dsonar.exclusions=**/node_modules/**,**/*.test.ts,**/*.test.tsx,**/*.spec.ts,**/*.spec.tsx \
+      #       -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+      #       -Dsonar.typescript.tsconfigPath=tsconfig.json \
+      #       -Dsonar.login=$SONAR_TOKEN \
+      #       -Dsonar.host.url=$SONAR_HOST_URL
 
-      # Step 6: Retrieve and Save SonarQube Report
-      - name: Fetch SonarQube Analysis Report
-        env:
-          SONAR_HOST_URL: http://localhost:9000
-          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
-        run: |
-          PROJECT_KEY="marketup_project"
-          REPORT=$(curl -s -u admin:${{ env.SONAR_TOKEN }} "$SONAR_HOST_URL/api/issues/search?componentKeys=$PROJECT_KEY")
-          echo "$REPORT" > sonarqube-report.json
+      # # Step 6: Retrieve and Save SonarQube Report
+      # - name: Fetch SonarQube Analysis Report
+      #   env:
+      #     SONAR_HOST_URL: http://localhost:9000
+      #     SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+      #   run: |
+      #     PROJECT_KEY="marketup_project"
+      #     REPORT=$(curl -s -u admin:${{ env.SONAR_TOKEN }} "$SONAR_HOST_URL/api/issues/search?componentKeys=$PROJECT_KEY")
+      #     echo "$REPORT" > sonarqube-report.json
 
-      # Step 7: Upload SonarQube Report as an Artifact
-      - name: Upload SonarQube Report
+      # # Step 7: Upload SonarQube Report as an Artifact
+      # - name: Upload SonarQube Report
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: sonarqube-report
+      #     path: sonarqube-report.json
+      #     retention-days: 30
+
+      # # Step 8: Stop SonarQube Service
+      # - name: Stop SonarQube
+      #   run: |
+      #     docker stop sonarqube
+      #     docker rm sonarqube
+
+      
+      # REPO SCAN WITH TRIVY
+      - name: Run Trivy vulnerability scanner in filesystem mode
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: 'fs' # Filesystem scan
+          scan-ref: '.'
+          trivy-config: trivy.yaml
+          hide-progress: false
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          exit-code: '0' # Don't fail the pipeline automatically
+          ignore-unfixed: true
+
+      - name: Generate Trivy Vulnerability Report
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          output: trivy-repo-scan-report.json
+          format: json
+          scan-ref: .
+          exit-code: 0
+
+      - name: Upload Vulnerability Scan Results
         uses: actions/upload-artifact@v4
         with:
-          name: sonarqube-report
-          path: sonarqube-report.json
+          name: trivy-repo-scan-report
+          path: trivy-repo-scan-report.json
           retention-days: 30
 
-      # Step 8: Stop SonarQube Service
-      - name: Stop SonarQube
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      # BUILD & TAG DOCKER IMAGE
+
+      - name: Build Docker Image # v1 - image tag
         run: |
-          docker stop sonarqube
-          docker rm sonarqube
+          docker build -t market-web:v1 .
 
-      
-      # # REPO SCAN WITH TRIVY
-      # - name: Run Trivy vulnerability scanner in filesystem mode
-      #   uses: aquasecurity/trivy-action@0.28.0
-      #   with:
-      #     scan-type: 'fs' # Filesystem scan
-      #     scan-ref: '.'
-      #     trivy-config: trivy.yaml
-      #     hide-progress: false
-      #     format: 'sarif'
-      #     output: 'trivy-results.sarif'
-      #     exit-code: '0' # Don't fail the pipeline automatically
-      #     ignore-unfixed: true
+      - name: Tag Docker Image
+        run: |
+          docker tag market-web:v1 ${{ secrets.ECR_REGISTRY_URL }}/market-web:v1
 
-      # - name: Generate Trivy Vulnerability Report
-      #   uses: aquasecurity/trivy-action@master
-      #   with:
-      #     scan-type: "fs"
-      #     output: trivy-repo-scan-report.json
-      #     format: json
-      #     scan-ref: .
-      #     exit-code: 0
-
-      # - name: Upload Vulnerability Scan Results
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: trivy-repo-scan-report
-      #     path: trivy-repo-scan-report.json
-      #     retention-days: 30
-
-      # - name: Configure AWS Credentials
-      #   uses: aws-actions/configure-aws-credentials@v2
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: us-east-2
-
-      # - name: Log in to Amazon ECR
-      #   id: login-ecr
-      #   uses: aws-actions/amazon-ecr-login@v2
-      
-      # # BUILD & TAG DOCKER IMAGE
-
-      # - name: Build Docker Image # v1 - image tag
-      #   run: |
-      #     docker build -t market-web:v1 .
-
-      # - name: Tag Docker Image
-      #   run: |
-      #     docker tag market-web:v1 ${{ secrets.ECR_REGISTRY_URL }}/market-web:v1
-
-      # - name: Push Docker Image to ECR
-      #   run: |
-      #     docker push ${{ secrets.ECR_REGISTRY_URL }}/market-web:v1
+      - name: Push Docker Image to ECR
+        run: |
+          docker push ${{ secrets.ECR_REGISTRY_URL }}/market-web:v1
       
 
-      # # DOCKER IMAGE SCAN WITH TRIVY
-      # - name: Run Trivy vulnerability scanner
-      #   uses: aquasecurity/trivy-action@0.28.0
-      #   with:
-      #     image-ref: '148761669209.dkr.ecr.us-east-2.amazonaws.com/market-web:v1'
-      #     format: 'json'
-      #     output: 'trivy-image-scan-results.json'
-      #   env:
-      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     AWS_DEFAULT_REGION: us-east-2
+      # DOCKER IMAGE SCAN WITH TRIVY
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: '148761669209.dkr.ecr.us-east-2.amazonaws.com/market-web:v1'
+          format: 'json'
+          output: 'trivy-image-scan-results.json'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-2
       
 
-      # # UPLOAD SCANNED RESULT
-      # - name: Upload Vulnerability Scan Results
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: trivy-image-scan-results
-      #     path: trivy-image-scan-results.json
-      #     retention-days: 30
+      # UPLOAD SCANNED RESULT
+      - name: Upload Vulnerability Scan Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-image-scan-results
+          path: trivy-image-scan-results.json
+          retention-days: 30
 
                 
 
